@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación Discord - Desorden RP</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+    .btn {
+      background-color: #5865F2;
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2em;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background-color: #4752C4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Verificación de cuenta Discord</h1>
+  <p>Para acceder al sitio de Desorden RP, primero verifica tu cuenta y pertenencia al servidor.</p>
+  <button class="btn" onclick="loginDiscord()">Verificar con Discord</button>
+
+  <script>
+    const CLIENT_ID = 'MTQ4NzgxODUxODU3MjQzMzQ2OA.Gt62L0.BMrctse1SPw_e3sCGnGWvDBKH4wznv2xGYTs0o';
+    const REDIRECT_URI = 'https://desordenrp.com/auth';
+    const SCOPE = 'identify guilds';
+    const SERVER_ID = '1487636083209535600TU_SERVER_ID_DISCORD'; // ID de tu servidor RP
+
+    function loginDiscord() {
+      const authUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPE)}`;
+      window.location.href = authUrl;
+    }
+
+    window.onload = () => {
+      const hash = window.location.hash;
+      if (hash.includes('access_token')) {
+        const token = hash.split('=')[1].split('&')[0];
+        fetch('https://discord.com/api/users/@me', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(res => res.json())
+        .then(user => {
+          // Verificar si el usuario pertenece al servidor
+          fetch('https://discord.com/api/users/@me/guilds', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          .then(res => res.json())
+          .then(guilds => {
+            const isMember = guilds.some(g => g.id === SERVER_ID);
+            if (isMember) {
+              document.body.innerHTML = `
+                <h1>Bienvenido, ${user.username}#${user.discriminator}</h1>
+                <p>Tu cuenta ha sido verificada y perteneces al servidor Desorden RP.</p>
+                <a href="https://desordenrp.com/inicio" style="color:#ff6600;">Entrar al sitio</a>
+              `;
+            } else {
+              document.body.innerHTML = `
+                <h1>Acceso denegado</h1>
+                <p>No perteneces al servidor de Discord Desorden RP.</p>
+                <a href="https://discord.gg/tuservidor" target="_blank" style="color:#5865F2;">Únete al servidor</a>
+              `;
+            }
+          });
+        });
+      }
+    };
+  </script>
+</body>
+</html>
